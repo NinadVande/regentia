@@ -24,54 +24,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, [user, loading, router, mounted]);
 
-  // Seed default courses and orders if none exist
-  useEffect(() => {
-    if (mounted && user) {
-      const savedCourses = localStorage.getItem('regentia_courses');
-      if (!savedCourses) {
-        const defaultCourses = [
-          {
-            id: 'crs_1',
-            title: 'Network Meta-Analysis Course',
-            purchaseDate: '2026-06-15',
-            status: 'Active',
-            iconName: 'Network',
-            description: 'Learn advanced methodologies for conducting and interpreting Network Meta-Analysis using evidence-based research practices.'
-          },
-          {
-            id: 'crs_2',
-            title: 'Meta-Analysis Course',
-            purchaseDate: '2026-05-10',
-            status: 'Active',
-            iconName: 'BarChart3',
-            description: 'Comprehensive training on systematic reviews, statistical methods, and pairwise meta-analysis for healthcare research.'
-          }
-        ];
-        localStorage.setItem('regentia_courses', JSON.stringify(defaultCourses));
-      }
-
-      const savedOrders = localStorage.getItem('regentia_orders');
-      if (!savedOrders) {
-        const defaultOrders = [
-          {
-            id: 'ORD-98273',
-            title: 'Network Meta-Analysis Course',
-            amount: 10000,
-            purchaseDate: '2026-06-15',
-            status: 'Success'
-          },
-          {
-            id: 'ORD-98112',
-            title: 'Meta-Analysis Course',
-            amount: 10000,
-            purchaseDate: '2026-05-10',
-            status: 'Success'
-          }
-        ];
-        localStorage.setItem('regentia_orders', JSON.stringify(defaultOrders));
-      }
-    }
-  }, [mounted, user]);
 
   if (!mounted || loading || !user) {
     return (

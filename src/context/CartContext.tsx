@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
 export interface CartItem {
   title: string;
@@ -29,29 +30,28 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [toast, setToast] = useState<ToastState | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Load from localStorage after mount to prevent hydration mismatch
+  // Load from localStorage after mount or user changes
   useEffect(() => {
-    setIsMounted(true);
-    const savedCart = localStorage.getItem('regentia_cart');
-    if (savedCart) {
-      try {
-        setCart(JSON.parse(savedCart));
-      } catch (e) {
-        console.error('Error parsing cart from localStorage', e);
+    if (user?.email) {
+      const savedCart = localStorage.getItem(`cart_${user.email}`);
+      if (savedCart) {
+        try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setCart(JSON.parse(savedCart));
+        } catch (e) {
+          console.error('Error parsing cart from localStorage', e);
+          setCart([]);
+        }
+      } else {
+        setCart([]);
       }
+    } else {
+      setCart([]);
     }
-  }, []);
-
-  // Save to localStorage when cart changes
-  useEffect(() => {
-    if (isMounted) {
-      localStorage.setItem('regentia_cart', JSON.stringify(cart));
-    }
-  }, [cart, isMounted]);
+  }, [user]);
 
   const triggerToast = (message: string, type: 'success' | 'info' | 'warning') => {
     setToast({ message, type });
@@ -77,18 +77,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       triggerToast('This course is already in your cart.', 'warning');
       return false;
     }
-    setCart((prev) => [...prev, item]);
+    const newCart = [...cart, item];
+    setCart(newCart);
+    if (user?.email) {
+      localStorage.setItem(`cart_${user.email}`, JSON.stringify(newCart));
+    }
     triggerToast(`"${item.title}" successfully added to cart.`, 'success');
     return true;
   };
 
   const removeFromCart = (title: string) => {
-    setCart((prev) => prev.filter((item) => item.title !== title));
+    const newCart = cart.filter((item) => item.title !== title);
+    setCart(newCart);
+    if (user?.email) {
+      localStorage.setItem(`cart_${user.email}`, JSON.stringify(newCart));
+    }
     triggerToast('Item removed from cart.', 'info');
   };
 
   const clearCart = () => {
     setCart([]);
+    if (user?.email) {
+      localStorage.setItem(`cart_${user.email}`, JSON.stringify([]));
+    }
     triggerToast('Cart cleared.', 'info');
   };
 

@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-regentia-navy mb-4">1. Introduction</h2>
               <p className="text-sm md:text-base leading-relaxed font-sans">
-                REGENTIA HEALTH AND RESEARCH PRIVATE LIMITED ("we", "us", or "our") respects the privacy of our website visitors, research collaborators, and clinical trial participants. This Privacy Policy details how we collect, store, utilize, and protect your information when you visit our website, submit inquiries, or participate in our medical and clinical studies.
+                REGENTIA HEALTH AND RESEARCH PRIVATE LIMITED (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) respects the privacy of our website visitors, research collaborators, and clinical trial participants. This Privacy Policy details how we collect, store, utilize, and protect your information when you visit our website, submit inquiries, or participate in our medical and clinical studies.
               </p>
             </div>
 
@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
             <div>
               <h2 className="text-xl md:text-2xl font-bold text-regentia-navy mb-4">5. Information Disclosure</h2>
               <p className="text-sm md:text-base leading-relaxed font-sans">
-                We do not sell, rent, or trade personal data. We disclose information only to regulatory bodies, ethics committees, or research sponsors when required by law or specified within the study's protocol guidelines.
+                We do not sell, rent, or trade personal data. We disclose information only to regulatory bodies, ethics committees, or research sponsors when required by law or specified within the study&apos;s protocol guidelines.
               </p>
             </div>
 

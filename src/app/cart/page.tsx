@@ -17,7 +17,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-const iconMap: Record<string, React.ComponentType<any>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Network,
   BarChart3,
   BookOpen,
@@ -31,6 +31,7 @@ export default function CartPage() {
   const [isClearCartModalOpen, setIsClearCartModalOpen] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -69,7 +70,7 @@ export default function CartPage() {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-regentia-navy">Your cart is currently empty</h2>
             <p className="text-sm text-slate-500 leading-relaxed font-sans max-w-sm">
-              You haven't added any professional research courses or support programs to your cart yet.
+              You haven&apos;t added any professional research courses or support programs to your cart yet.
             </p>
           </div>
 

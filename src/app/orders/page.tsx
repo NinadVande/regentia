@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
+import { useAuth } from '@/context/AuthContext';
 import { ShoppingBag, ChevronRight, FileText, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface Order {
@@ -15,21 +16,29 @@ interface Order {
 }
 
 export default function OrdersPage() {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    const savedOrders = localStorage.getItem('regentia_orders');
-    if (savedOrders) {
-      try {
-        setOrders(JSON.parse(savedOrders));
-      } catch (e) {
-        console.error('Error loading orders:', e);
+    if (user?.email) {
+      const savedOrders = localStorage.getItem(`orders_${user.email}`);
+      if (savedOrders) {
+        try {
+          setOrders(JSON.parse(savedOrders));
+        } catch (e) {
+          console.error('Error loading orders:', e);
+          setOrders([]);
+        }
+      } else {
+        setOrders([]);
       }
+    } else {
+      setOrders([]);
     }
-  }, []);
+  }, [user]);
 
   if (!mounted) return null;
 

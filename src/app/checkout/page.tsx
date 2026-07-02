@@ -21,7 +21,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-const iconMap: Record<string, React.ComponentType<any>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Network,
   BarChart3,
   BookOpen,
@@ -41,8 +41,8 @@ interface FormErrors {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, cartCount, clearCart } = useCart();
-  const { triggerToast } = useAuth();
+  const { cart, cartTotal, cartCount } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState<FormState>({
@@ -57,8 +57,21 @@ export default function CheckoutPage() {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
+
+  // Prefill billing details from logged-in user profile
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFormData({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.mobileNumber || '',
+      });
+    }
+  }, [user]);
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -179,83 +192,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const handlePaymentConfirm = () => {
-    setIsPaymentModalOpen(false);
-
-    interface CourseRecord {
-      id: string;
-      title: string;
-      purchaseDate: string;
-      status: string;
-      iconName: string;
-      description: string;
-    }
-
-    interface OrderRecord {
-      id: string;
-      title: string;
-      amount: number;
-      purchaseDate: string;
-      status: string;
-    }
-
-    // Save cart items to purchased courses
-    const savedCoursesStr = localStorage.getItem('regentia_courses');
-    let currentCourses: CourseRecord[] = [];
-    if (savedCoursesStr) {
-      try {
-        currentCourses = JSON.parse(savedCoursesStr);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    const savedOrdersStr = localStorage.getItem('regentia_orders');
-    let currentOrders: OrderRecord[] = [];
-    if (savedOrdersStr) {
-      try {
-        currentOrders = JSON.parse(savedOrdersStr);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    // Process each cart item
-    cart.forEach((item) => {
-      const newCourseId = 'crs_' + Math.random().toString(36).substr(2, 9);
-      const isAlreadyEnrolled = currentCourses.some((c) => c.title === item.title);
-      
-      if (!isAlreadyEnrolled) {
-        currentCourses.push({
-          id: newCourseId,
-          title: item.title,
-          purchaseDate: new Date().toISOString().split('T')[0],
-          status: 'Active',
-          iconName: item.iconName,
-          description: item.description
-        });
-      }
-
-      const newOrderId = 'ORD-' + Math.floor(10000 + Math.random() * 90000);
-      const amountPaid = parseInt(item.fee.replace(/[^0-9]/g, ''), 10) || 10000;
-      
-      currentOrders.unshift({
-        id: newOrderId,
-        title: item.title,
-        amount: amountPaid,
-        purchaseDate: new Date().toISOString().split('T')[0],
-        status: 'Success'
-      });
-    });
-
-    localStorage.setItem('regentia_courses', JSON.stringify(currentCourses));
-    localStorage.setItem('regentia_orders', JSON.stringify(currentOrders));
-
-    // Clear cart and redirect
-    clearCart();
-    triggerToast('Enrollment completed successfully! Welcome to your courses.', 'success');
-    router.push('/my-courses');
-  };
+  // No longer simulating successful checkout payment flow
 
   return (
     <div className="w-full min-h-screen bg-slate-50/50 py-16 md:py-24">
@@ -422,7 +359,7 @@ export default function CheckoutPage() {
               </p>
             </div>
             <Button
-              onClick={handlePaymentConfirm}
+              onClick={() => setIsPaymentModalOpen(false)}
               className="mt-4 w-full"
             >
               OK, Got it

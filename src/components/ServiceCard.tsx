@@ -15,7 +15,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 
-const iconMap: Record<string, React.ComponentType<any>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Network,
   BarChart3,
   BookOpen,

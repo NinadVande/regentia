@@ -75,13 +75,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await authService.login(email, password, rememberMe);
       if (res.success && res.user) {
-        setUser(res.user);
-        if (rememberMe) {
-          localStorage.setItem('regentia_user', JSON.stringify(res.user));
+        const profileKey = `profile_${res.user.email}`;
+        const savedProfileStr = localStorage.getItem(profileKey);
+        const activeUser = { ...res.user };
+
+        if (savedProfileStr) {
+          try {
+            const savedProfile = JSON.parse(savedProfileStr);
+            activeUser.fullName = savedProfile.fullName || activeUser.fullName;
+            activeUser.mobileNumber = savedProfile.mobileNumber || activeUser.mobileNumber;
+          } catch (e) {
+            console.error('Error parsing saved profile:', e);
+          }
         } else {
-          // Session only, but since we are mock only, we store in localStorage to maintain page refreshes
-          localStorage.setItem('regentia_user', JSON.stringify(res.user));
+          localStorage.setItem(profileKey, JSON.stringify({
+            fullName: activeUser.fullName,
+            mobileNumber: activeUser.mobileNumber,
+            email: activeUser.email
+          }));
         }
+
+        setUser(activeUser);
+        localStorage.setItem('regentia_user', JSON.stringify(activeUser));
         triggerToast('Welcome back! Login successful.', 'success');
         router.push('/');
       } else {
@@ -102,7 +117,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await authService.signup(fullName, email, mobileNumber, password);
       if (res.success && res.user) {
-        // Mock flow: set user as logged in & trigger verification email flow
+        const profileKey = `profile_${res.user.email}`;
+        localStorage.setItem(profileKey, JSON.stringify({
+          fullName: res.user.fullName,
+          mobileNumber: res.user.mobileNumber,
+          email: res.user.email
+        }));
+
         setUser(res.user);
         localStorage.setItem('regentia_user', JSON.stringify(res.user));
         triggerToast('Registration successful! Check your email to verify.', 'success');
@@ -209,6 +230,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const updatedUser = { ...user, fullName, mobileNumber };
         setUser(updatedUser);
         localStorage.setItem('regentia_user', JSON.stringify(updatedUser));
+        localStorage.setItem(`profile_${user.email}`, JSON.stringify({
+          fullName,
+          mobileNumber,
+          email: user.email
+        }));
         triggerToast('Profile updated successfully.', 'success');
         return { success: true, message: 'Profile updated successfully.' };
       }

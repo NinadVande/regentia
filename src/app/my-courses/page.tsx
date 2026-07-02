@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Network, 
   BarChart3, 
@@ -35,6 +36,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 export default function MyCoursesPage() {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [mounted, setMounted] = useState(false);
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
@@ -42,15 +44,22 @@ export default function MyCoursesPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    const savedCourses = localStorage.getItem('regentia_courses');
-    if (savedCourses) {
-      try {
-        setCourses(JSON.parse(savedCourses));
-      } catch (e) {
-        console.error('Error loading courses:', e);
+    if (user?.email) {
+      const savedCourses = localStorage.getItem(`courses_${user.email}`);
+      if (savedCourses) {
+        try {
+          setCourses(JSON.parse(savedCourses));
+        } catch (e) {
+          console.error('Error loading courses:', e);
+          setCourses([]);
+        }
+      } else {
+        setCourses([]);
       }
+    } else {
+      setCourses([]);
     }
-  }, []);
+  }, [user]);
 
   if (!mounted) return null;
 
@@ -77,13 +86,13 @@ export default function MyCoursesPage() {
             <div className="h-20 w-20 rounded-full bg-regentia-light flex items-center justify-center text-regentia-blue mb-5">
               <BookOpenCheck className="h-10 w-10 animate-pulse" />
             </div>
-            <h3 className="text-lg font-bold text-regentia-navy">No courses enrolled yet</h3>
+            <h3 className="text-lg font-bold text-regentia-navy">You haven&apos;t purchased any courses yet.</h3>
             <p className="text-sm text-slate-500 max-w-sm mt-2 leading-relaxed">
               Enhance your clinical research methodology and validation capabilities. Explore our professional studies.
             </p>
             <Link href="/services" className="mt-6">
               <Button variant="outline" className="flex items-center gap-2">
-                <span>Explore Catalog</span>
+                <span>Browse Courses</span>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </Link>
