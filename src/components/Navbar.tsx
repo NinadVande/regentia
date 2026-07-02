@@ -1,12 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Mail, Phone, MapPin, Menu, X, ArrowRight, ShoppingCart } from 'lucide-react';
+import { 
+  Mail, Phone, MapPin, Menu, X, ShoppingCart,
+  User as UserIcon, BookOpen, ShoppingBag, Settings as SettingsIcon, LogOut, ChevronDown 
+} from 'lucide-react';
 import Logo from './Logo';
 import Button from './ui/Button';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -14,9 +18,23 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { cartCount } = useCart();
+  const { user, logout } = useAuth();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -124,12 +142,92 @@ export default function Navbar() {
               <span>Cart</span>
             </Link>
 
-            <Link href="/contact">
-              <Button className="flex items-center gap-2">
-                <span>Contact Us</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </Link>
+            {mounted && user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-100 bg-white shadow-sm hover:shadow hover:border-slate-200 transition-all text-sm font-semibold text-slate-700 focus:outline-none cursor-pointer"
+                >
+                  <img
+                    src={user.avatarUrl || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.email}`}
+                    alt={user.fullName}
+                    className="h-7.5 w-7.5 rounded-full bg-slate-100 object-cover border border-slate-100"
+                  />
+                  <span className="max-w-[100px] truncate">{user.fullName.split(' ')[0]}</span>
+                  <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white/95 backdrop-blur-md rounded-xl border border-slate-100 shadow-xl shadow-slate-200/50 py-2.5 z-50 animate-fade-in-up flex flex-col font-sans">
+                    <div className="px-4 py-2 border-b border-slate-50 mb-1 text-left">
+                      <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Signed in as</p>
+                      <p className="text-sm font-bold text-regentia-navy truncate mt-0.5">{user.fullName}</p>
+                      <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                    </div>
+                    
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="px-4 py-2 text-xs md:text-sm text-left text-slate-600 hover:bg-regentia-light/50 hover:text-regentia-blue transition-colors flex items-center gap-2.5"
+                    >
+                      <UserIcon className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span>My Profile</span>
+                    </Link>
+                    
+                    <Link
+                      href="/my-courses"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="px-4 py-2 text-xs md:text-sm text-left text-slate-600 hover:bg-regentia-light/50 hover:text-regentia-blue transition-colors flex items-center gap-2.5"
+                    >
+                      <BookOpen className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span>My Courses</span>
+                    </Link>
+                    
+                    <Link
+                      href="/orders"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="px-4 py-2 text-xs md:text-sm text-left text-slate-600 hover:bg-regentia-light/50 hover:text-regentia-blue transition-colors flex items-center gap-2.5"
+                    >
+                      <ShoppingBag className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span>Orders</span>
+                    </Link>
+                    
+                    <Link
+                      href="/settings"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="px-4 py-2 text-xs md:text-sm text-left text-slate-600 hover:bg-regentia-light/50 hover:text-regentia-blue transition-colors flex items-center gap-2.5"
+                    >
+                      <SettingsIcon className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span>Settings</span>
+                    </Link>
+                    
+                    <div className="h-px bg-slate-50 my-1.5" />
+                    
+                    <button
+                      onClick={() => {
+                        setIsProfileOpen(false);
+                        logout();
+                      }}
+                      className="px-4 py-2 text-xs md:text-sm text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors flex items-center gap-2.5 w-full text-left font-semibold cursor-pointer"
+                    >
+                      <LogOut className="h-4 w-4 shrink-0 text-rose-400" />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-regentia-blue transition-colors">
+                  Login
+                </Link>
+                <Link href="/signup">
+                  <Button className="h-9 px-4.5 text-xs font-semibold">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -144,7 +242,7 @@ export default function Navbar() {
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-x-0 top-[105px] bottom-0 bg-white z-40 border-t border-slate-100 animate-fade-in-up flex flex-col p-6">
+          <div className="md:hidden fixed inset-x-0 top-[105px] bottom-0 bg-white z-40 border-t border-slate-100 animate-fade-in-up flex flex-col p-6 overflow-y-auto">
             <nav className="flex flex-col gap-6 text-lg font-medium mb-8">
               {navLinks.map((link) => (
                 <Link
@@ -178,14 +276,86 @@ export default function Navbar() {
                   </span>
                 )}
               </Link>
+
+              {mounted && user && (
+                <>
+                  <div className="py-2.5 flex items-center gap-3 border-b border-slate-50">
+                    <img
+                      src={user.avatarUrl || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.email}`}
+                      alt={user.fullName}
+                      className="h-10 w-10 rounded-full bg-slate-100"
+                    />
+                    <div className="text-left">
+                      <p className="text-sm font-bold text-regentia-navy leading-snug">{user.fullName}</p>
+                      <p className="text-[10px] text-slate-400">{user.email}</p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2 border-b border-slate-50 text-slate-600 hover:text-regentia-navy flex items-center gap-3 text-left"
+                  >
+                    <UserIcon className="h-5 w-5 text-slate-400" />
+                    <span>My Profile</span>
+                  </Link>
+
+                  <Link
+                    href="/my-courses"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2 border-b border-slate-50 text-slate-600 hover:text-regentia-navy flex items-center gap-3 text-left"
+                  >
+                    <BookOpen className="h-5 w-5 text-slate-400" />
+                    <span>My Courses</span>
+                  </Link>
+
+                  <Link
+                    href="/orders"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2 border-b border-slate-50 text-slate-600 hover:text-regentia-navy flex items-center gap-3 text-left"
+                  >
+                    <ShoppingBag className="h-5 w-5 text-slate-400" />
+                    <span>Orders</span>
+                  </Link>
+
+                  <Link
+                    href="/settings"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="py-2 border-b border-slate-50 text-slate-600 hover:text-regentia-navy flex items-center gap-3 text-left"
+                  >
+                    <SettingsIcon className="h-5 w-5 text-slate-400" />
+                    <span>Settings</span>
+                  </Link>
+                </>
+              )}
             </nav>
             <div className="mt-auto flex flex-col gap-4">
-              <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="w-full justify-center py-3 text-base flex items-center gap-2">
-                  <span>Contact Us</span>
-                  <ArrowRight className="h-5 w-5" />
+              {mounted && user ? (
+                <Button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    logout();
+                  }}
+                  variant="outline"
+                  className="w-full justify-center py-3 text-base flex items-center gap-2 border-rose-200 text-rose-600 hover:bg-rose-50 cursor-pointer font-semibold"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Log Out</span>
                 </Button>
-              </Link>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-3 w-full">
+                  <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
+                    <Button variant="outline" className="w-full justify-center py-3 text-base">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full">
+                    <Button className="w-full justify-center py-3 text-base">
+                      Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         )}
